@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: jobhunter-ai
+    runtime: docker
+    plan: free
+    region: oregon
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: HEADLESS
+        value: "true"
+      - key: NODE_ENV
+        value: production
+      - key: RENDER
+        value: "true"

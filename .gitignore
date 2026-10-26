@@ -1,0 +1,10 @@
+node_modules/
+data/browser_profile/
+data/screenshots/
+*.db
+*.db-wal
+*.db-shm
+.env
+.env.local
+Thumbs.db
+.DS_Store

@@ -1,0 +1,103 @@
+{
+  "personal": {
+    "firstName": "Swaroop",
+    "lastName": "H G",
+    "email": "swaroophghulegar@gmail.com",
+    "phone": "+91 8277356152",
+    "city": "Bengaluru",
+    "state": "Karnataka",
+    "country": "India",
+    "postalCode": "560001",
+    "address": "Bengaluru, India",
+    "linkedin": "https://linkedin.com/in/swaroop-h-g-b482b9242",
+    "github": "https://github.com/swaroop44ops",
+    "portfolio": "https://github.com/swaroop44ops",
+    "resumePath": "data/resumes/Swaroop_HG_FullStack.pdf"
+  },
+  "workAuthorization": {
+    "authorizedInCountry": "yes",
+    "authorizedInIndia": "yes",
+    "requireSponsorship": "no",
+    "citizenship": "Indian"
+  },
+  "preferences": {
+    "targetTitles": [
+      ".net Developer"
+    ],
+    "targetLocations": [
+      "Bengaluru",
+      "India",
+      "Remote"
+    ],
+    "minSalary": 1200000,
+    "yearsOfExperience": 3,
+    "noticePeriodWeeks": 4,
+    "skills": [
+      "C#",
+      ".NET Framework",
+      ".NET Core",
+      "ASP.NET MVC",
+      "ASP.NET Core",
+      "Web API",
+      "Object-Oriented Programming (OOP)",
+      "LINQ",
+      "async",
+      "await",
+      "dependency injection",
+      "service-layer design",
+      "SOLID principles",
+      "design patterns",
+      "multi-tier architecture",
+      "JWT authentication",
+      "role-based access",
+      "CORS",
+      "PostgreSQL",
+      "Microsoft SQL Server",
+      "MySQL",
+      "SQL queries",
+      "joins",
+      "stored procedures",
+      "stored functions",
+      "views",
+      "window functions",
+      "database design",
+      "query optimization",
+      "performance tuning",
+      "HTML5",
+      "CSS3",
+      "JavaScript ES6+",
+      "jQuery",
+      "AJAX",
+      "React",
+      "Next.js 14",
+      "TypeScript",
+      "Bootstrap",
+      "MUI",
+      "Microsoft Azure",
+      "Azure App Service",
+      "Azure SQL",
+      "Application Insights",
+      "Git",
+      "GitLab CI",
+      "CD",
+      "Jenkins",
+      "IIS",
+      "Docker",
+      "CI",
+      "CD pipelines"
+    ],
+    "blacklistCompanies": [
+      "SpamCorp"
+    ],
+    "blacklistKeywords": [
+      "Unpaid"
+    ]
+  },
+  "answers": {
+    "whyCompany": "I am passionate about building scalable, high-performance software and eager to contribute my expertise in C#, .NET Framework, .NET Core, ASP.NET MVC to your engineering team.",
+    "describeExperience": "Full Stack Software Engineer with 3+ years of",
+    "gender": "Decline to identify",
+    "veteran": "Not a veteran",
+    "disability": "Decline to self-identify"
+  }
+}

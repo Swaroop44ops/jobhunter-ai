@@ -1,0 +1,6 @@
+node_modules
+npm-debug.log
+data/browser_profile
+data/screenshots
+.git
+.env.local

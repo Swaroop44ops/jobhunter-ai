@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobHunter AI - Auto-Apply & Job Search Agent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .badge-high { background-color: #dcfce7; color: #15803d; }
+    .badge-mid { background-color: #fef9c3; color: #854d0e; }
+    .badge-low { background-color: #f3f4f6; color: #4b5563; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+  <!-- Navbar -->
+  <header class="bg-indigo-900 text-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow">
+          <i class="fa-solid fa-briefcase text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight">JobHunter AI</h1>
+          <p class="text-xs text-indigo-200">Autonomous Job Discovery & Auto-Apply Copilot</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <button id="btn-run-search" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center space-x-2 transition shadow">
+          <i class="fa-solid fa-bolt"></i>
+          <span>Run Discovery Scan</span>
+        </button>
+        <button id="btn-batch-apply" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center space-x-2 transition shadow">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Batch Apply Top Matches</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- KPI Stats Bar -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-xs uppercase font-semibold text-slate-400">Total Scanned</p>
+          <h3 id="stat-total" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
+        </div>
+        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-xs uppercase font-semibold text-slate-400">High Match (&ge;70%)</p>
+          <h3 id="stat-high-match" class="text-2xl font-bold text-indigo-600 mt-1">0</h3>
+        </div>
+        <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-xl">
+          <i class="fa-solid fa-star"></i>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-xs uppercase font-semibold text-slate-400">Queued / Copilot</p>
+          <h3 id="stat-queued" class="text-2xl font-bold text-amber-600 mt-1">0</h3>
+        </div>
+        <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl">
+          <i class="fa-solid fa-clock"></i>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-xs uppercase font-semibold text-slate-400">Applications Sent</p>
+          <h3 id="stat-applied" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
+        </div>
+        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex space-x-2 border-b border-slate-200 mb-6">
+      <button class="nav-tab active px-4 py-2 font-medium text-sm text-indigo-600 border-b-2 border-indigo-600 flex items-center space-x-2" data-tab="jobs">
+        <i class="fa-solid fa-list-check"></i>
+        <span>Job Pipeline</span>
+      </button>
+      <button class="nav-tab px-4 py-2 font-medium text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-2" data-tab="profile">
+        <i class="fa-solid fa-user-gear"></i>
+        <span>Profile & Criteria</span>
+      </button>
+      <button class="nav-tab px-4 py-2 font-medium text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-2" data-tab="logs">
+        <i class="fa-solid fa-terminal"></i>
+        <span>Activity & Logs</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: Job Pipeline -->
+    <section id="tab-jobs" class="tab-content block">
+      
+      <!-- Multi-Portal Fast Search Bar -->
+      <div class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white rounded-2xl p-5 shadow-lg mb-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 class="text-base font-bold flex items-center space-x-2">
+              <i class="fa-solid fa-globe text-indigo-400"></i>
+              <span>Live Search in All Job Portals</span>
+            </h2>
+            <p class="text-xs text-indigo-200">Query Greenhouse direct boards, LinkedIn, RemoteOK, and Jobicy simultaneously.</p>
+          </div>
+          <div class="flex items-center space-x-2 text-xs text-indigo-300">
+            <span class="inline-flex items-center px-2 py-0.5 rounded bg-indigo-950/60 border border-indigo-700/50"><i class="fa-solid fa-bolt text-amber-400 mr-1"></i> Parallel Scraping</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded bg-indigo-950/60 border border-indigo-700/50"><i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i> Deduplicated</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+          <div class="md:col-span-6 relative">
+            <i class="fa-solid fa-briefcase absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+            <input type="text" id="portal-keywords" placeholder="Keywords or Job Titles (e.g. Full Stack Developer, React, Python)..." class="w-full pl-10 pr-4 py-2.5 bg-white text-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-inner">
+          </div>
+          <div class="md:col-span-4 relative">
+            <i class="fa-solid fa-location-dot absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+            <input type="text" id="portal-location" placeholder="Location (e.g. India, Bengaluru, Remote)..." value="India" class="w-full pl-10 pr-4 py-2.5 bg-white text-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-inner">
+          </div>
+          <div class="md:col-span-2">
+            <button id="btn-portal-search" class="w-full h-full py-2.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 font-bold rounded-xl text-sm flex items-center justify-center space-x-2 transition shadow-md">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <span>Search All</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Resume & Filter Toolbar -->
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-4 items-center justify-between">
+        
+        <!-- Search within existing DB -->
+        <div class="flex-1 min-w-[220px] relative">
+          <i class="fa-solid fa-filter absolute left-3 top-3 text-slate-400"></i>
+          <input type="text" id="search-input" placeholder="Filter indexed jobs by role/company..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- Location Filter -->
+        <div class="flex items-center space-x-2 min-w-[190px]">
+          <i class="fa-solid fa-location-crosshairs text-slate-400 text-sm"></i>
+          <input type="text" id="filter-location" placeholder="Filter Location (e.g. Remote)..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- Status Filter -->
+        <div class="flex items-center space-x-2">
+          <label class="text-xs font-semibold text-slate-500">Status:</label>
+          <select id="filter-status" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All Statuses</option>
+            <option value="DISCOVERED">Discovered</option>
+            <option value="QUEUED">Queued / Review</option>
+            <option value="APPLIED">Applied</option>
+            <option value="FAILED">Failed</option>
+          </select>
+        </div>
+
+        <!-- Date Posted Filter -->
+        <div class="flex items-center space-x-2">
+          <label class="text-xs font-semibold text-slate-500 flex items-center space-x-1">
+            <i class="fa-regular fa-clock text-indigo-600"></i>
+            <span>Posted:</span>
+          </label>
+          <select id="filter-date" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-slate-700">
+            <option value="">All Time</option>
+            <option value="24h">Past 24 Hours</option>
+            <option value="7d">Past Week</option>
+            <option value="30d">Past Month</option>
+          </select>
+        </div>
+
+        <!-- Score Slider -->
+        <div class="flex items-center space-x-2">
+          <label class="text-xs font-semibold text-slate-500">Min Score:</label>
+          <input type="range" id="filter-score" min="0" max="90" step="10" value="0" class="accent-indigo-600">
+          <span id="score-val" class="text-sm font-semibold text-slate-700 w-8">0%</span>
+        </div>
+
+        <!-- Quick Resume Indicator & Upload Trigger -->
+        <div class="flex items-center space-x-2 border-l border-slate-200 pl-4">
+          <label for="quick-resume-upload" class="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition border border-slate-300">
+            <i class="fa-solid fa-file-arrow-up text-indigo-600"></i>
+            <span id="quick-resume-label">Upload Resume</span>
+          </label>
+          <input type="file" id="quick-resume-upload" class="hidden" accept=".pdf,.doc,.docx,.txt">
+        </div>
+
+      </div>
+
+      <!-- Jobs Table -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-600">
+            <thead class="bg-slate-50 text-slate-500 uppercase text-xs font-semibold border-b border-slate-200">
+              <tr>
+                <th class="px-6 py-3">Fit Score</th>
+                <th class="px-6 py-3">Job Details</th>
+                <th class="px-6 py-3">Platform</th>
+                <th class="px-6 py-3">Status</th>
+                <th class="px-6 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="jobs-table-body" class="divide-y divide-slate-100">
+              <!-- Rendered via JS -->
+              <tr>
+                <td colspan="5" class="px-6 py-8 text-center text-slate-400">
+                  <i class="fa-solid fa-spinner fa-spin text-2xl text-indigo-500 mb-2"></i>
+                  <p>Loading jobs...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: Profile & Criteria Settings -->
+    <section id="tab-profile" class="tab-content hidden">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-6">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">Candidate Profile & Auto-Apply Criteria</h2>
+            <p class="text-xs text-slate-500">Configure your personal information, links, and automated form answers.</p>
+          </div>
+          <button id="btn-save-profile" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-lg font-medium text-sm flex items-center space-x-2 transition shadow">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>Save Profile</span>
+          </button>
+        </div>
+
+        <form id="profile-form" class="space-y-6">
+          <!-- Active Resume Card -->
+          <div class="bg-indigo-50/70 border border-indigo-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+              <div class="w-12 h-12 bg-indigo-600 text-white rounded-xl flex items-center justify-center text-xl shadow">
+                <i class="fa-solid fa-file-pdf"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                  <span>Active Resume for Auto-Apply</span>
+                  <span id="resume-status-badge" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">Ready</span>
+                </h4>
+                <p id="prof-resume-display" class="text-xs text-slate-600 mt-0.5 font-mono">data/sample_resume.pdf</p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button type="button" id="btn-extract-resume" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center space-x-1.5 shadow-sm transition">
+                <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
+                <span>Auto-Extract Profile</span>
+              </button>
+              <label for="profile-resume-upload" class="cursor-pointer bg-white hover:bg-slate-50 text-indigo-700 px-3 py-2 rounded-lg text-xs font-bold flex items-center space-x-1.5 border border-indigo-300 shadow-sm transition">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Upload New (.pdf)</span>
+              </label>
+              <input type="file" id="profile-resume-upload" class="hidden" accept=".pdf,.doc,.docx,.txt">
+            </div>
+          </div>
+
+          <!-- Personal Info -->
+          <div>
+            <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">1. Personal Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">First Name</label>
+                <input type="text" id="prof-firstName" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Last Name</label>
+                <input type="text" id="prof-lastName" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Email</label>
+                <input type="email" id="prof-email" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Phone</label>
+                <input type="text" id="prof-phone" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">LinkedIn Profile</label>
+                <input type="url" id="prof-linkedin" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">GitHub / Portfolio</label>
+                <input type="url" id="prof-github" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+            </div>
+          </div>
+
+          <!-- Preferences & Skills -->
+          <div class="pt-4 border-t border-slate-100">
+            <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">2. Job Targets & Skills</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Target Roles (comma-separated)</label>
+                <input type="text" id="prof-targetTitles" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Software Engineer, Full Stack Developer">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Core Skills (comma-separated)</label>
+                <input type="text" id="prof-skills" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="JavaScript, Node.js, React, Python, SQL">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Years of Experience</label>
+                <input type="number" id="prof-yoe" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Minimum Expected Salary ($/yr)</label>
+                <input type="number" id="prof-salary" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+            </div>
+          </div>
+
+          <!-- Auto-Fill Answers -->
+          <div class="pt-4 border-t border-slate-100">
+            <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">3. Application Answers & AI Context</h3>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Summary of Experience (used for open-ended form inputs)</label>
+                <textarea id="prof-descExperience" rows="2" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Why this company? (Template / Context)</label>
+                <textarea id="prof-whyCompany" rows="2" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- TAB 3: Activity & Logs -->
+    <section id="tab-logs" class="tab-content hidden">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-4">
+          <h2 class="text-lg font-bold text-slate-800">Activity Logs & Bot Execution</h2>
+          <button id="btn-refresh-logs" class="text-indigo-600 hover:text-indigo-500 text-sm font-medium flex items-center space-x-1">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            <span>Refresh</span>
+          </button>
+        </div>
+        <div id="logs-container" class="bg-slate-900 text-slate-200 font-mono text-xs rounded-xl p-4 h-96 overflow-y-auto space-y-1">
+          <p class="text-slate-500">No logs yet.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Job Details Modal -->
+  <div id="job-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-2xl max-w-2xl w-full mx-4 max-h-[85vh] flex flex-col shadow-2xl">
+      <div class="p-6 border-b border-slate-200 flex justify-between items-start">
+        <div>
+          <span id="modal-score" class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold mb-2"></span>
+          <h3 id="modal-title" class="text-xl font-bold text-slate-900"></h3>
+          <p id="modal-company" class="text-sm text-slate-500 mt-1"></p>
+        </div>
+        <button id="btn-close-modal" class="text-slate-400 hover:text-slate-600 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4 flex-1">
+        <div>
+          <h4 class="text-xs uppercase font-semibold text-slate-400 mb-1">Match Analysis</h4>
+          <div id="modal-reasons" class="space-y-1 text-sm text-slate-700"></div>
+        </div>
+
+        <div>
+          <h4 class="text-xs uppercase font-semibold text-slate-400 mb-1">Tailored Cover Letter Preview</h4>
+          <pre id="modal-cover-letter" class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs text-slate-800 whitespace-pre-wrap font-sans"></pre>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-200 bg-slate-50 rounded-b-2xl flex justify-between items-center">
+        <a id="modal-link" href="#" target="_blank" class="text-indigo-600 hover:text-indigo-500 text-sm font-medium flex items-center space-x-1">
+          <span>View Original Job Posting</span>
+          <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+        </a>
+        <div class="flex space-x-2">
+          <button id="modal-btn-copilot" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-medium shadow flex items-center space-x-2">
+            <i class="fa-solid fa-user-check"></i>
+            <span>Apply (Copilot)</span>
+          </button>
+          <button id="modal-btn-auto" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium shadow flex items-center space-x-2">
+            <i class="fa-solid fa-robot"></i>
+            <span>Apply (Full Auto)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

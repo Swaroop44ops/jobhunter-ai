@@ -1,0 +1,57 @@
+{
+  "personal": {
+    "firstName": "Alex",
+    "lastName": "Dev",
+    "email": "alex.dev.example@gmail.com",
+    "phone": "+1 (555) 234-5678",
+    "city": "San Francisco",
+    "state": "CA",
+    "country": "United States",
+    "postalCode": "94105",
+    "address": "123 Market St",
+    "linkedin": "https://www.linkedin.com/in/alex-dev-example",
+    "github": "https://github.com/alex-dev-example",
+    "portfolio": "https://alexdev.example.com",
+    "resumePath": "data/sample_resume.pdf"
+  },
+  "workAuthorization": {
+    "authorizedInUS": "yes",
+    "requireSponsorship": "no",
+    "citizenship": "Citizen"
+  },
+  "preferences": {
+    "targetTitles": [
+      "Software Engineer",
+      "Full Stack Developer",
+      "Frontend Engineer",
+      "Backend Engineer",
+      "Node.js Developer"
+    ],
+    "targetLocations": ["Remote", "United States", "San Francisco, CA"],
+    "minSalary": 90000,
+    "yearsOfExperience": 4,
+    "noticePeriodWeeks": 2,
+    "skills": [
+      "JavaScript",
+      "TypeScript",
+      "Node.js",
+      "React",
+      "Python",
+      "Express",
+      "PostgreSQL",
+      "SQLite",
+      "REST APIs",
+      "Git",
+      "Docker"
+    ],
+    "blacklistCompanies": ["SpamCorp", "UnwantedStaffing"],
+    "blacklistKeywords": ["Clearance Required", "TS/SCI", "Unpaid"]
+  },
+  "answers": {
+    "whyCompany": "I am passionate about building reliable, scalable software products and love the mission and technical challenges your engineering team tackles.",
+    "describeExperience": "Over 4 years designing, developing, and deploying full-stack web applications, microservices, and modern user interfaces with high reliability.",
+    "gender": "Decline to identify",
+    "veteran": "Not a veteran",
+    "disability": "Decline to self-identify"
+  }
+}
