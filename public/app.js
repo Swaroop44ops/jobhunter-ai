@@ -130,10 +130,10 @@ async function loadStats() {
 
 // Jobs Table
 async function loadJobs() {
-  const query = searchInput.value;
+  const query = (searchInput.value || (portalKeywords ? portalKeywords.value : '')).trim();
   const status = filterStatus.value;
   const minScore = filterScore.value;
-  const location = filterLocation ? filterLocation.value : '';
+  const location = (filterLocation && filterLocation.value ? filterLocation.value : (portalLocation ? portalLocation.value : '')).trim();
   const datePosted = filterDate ? filterDate.value : '';
 
   const url = new URL('/api/jobs', window.location.origin);
@@ -359,13 +359,17 @@ async function handleRunSearch() {
 
 // Multi-Portal Fast Search
 async function handlePortalSearch() {
-  const kw = portalKeywords?.value || '';
-  const loc = portalLocation?.value || 'Remote';
+  const kw = (portalKeywords?.value || '').trim();
+  const loc = (portalLocation?.value || 'Bengaluru').trim();
 
   if (btnPortalSearch) {
     btnPortalSearch.disabled = true;
     btnPortalSearch.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Searching All...</span>`;
   }
+
+  // Immediately synchronize the filter toolbar inputs
+  if (searchInput && kw) searchInput.value = kw;
+  if (filterLocation && loc) filterLocation.value = loc;
 
   try {
     const res = await fetch('/api/search', {
@@ -375,7 +379,7 @@ async function handlePortalSearch() {
     });
     const data = await res.json();
     const r = data.results || {};
-    showToast(`Multi-Portal Search Done: ${r.totalScanned || 0} jobs scanned (${r.newJobs || 0} new, ${r.updatedJobs || 0} updated).`);
+    showToast(`Search Done: ${r.totalScanned || 0} jobs scanned (${r.newJobs || 0} new, ${r.updatedJobs || 0} updated).`);
     loadStats();
     loadJobs();
     loadLogs();

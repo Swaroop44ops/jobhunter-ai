@@ -2,23 +2,32 @@ import crypto from 'crypto';
 
 export async function fetchLinkedInJobs(keywords = 'Software Engineer', location = 'India', maxPages = 2) {
   const jobs = [];
+  const encodedKw = encodeURIComponent(keywords);
+  const encodedLoc = encodeURIComponent(location);
   
   for (let page = 0; page < maxPages; page++) {
     const start = page * 25;
     try {
-      const encodedKw = encodeURIComponent(keywords);
-      const encodedLoc = encodeURIComponent(location);
-      const url = `https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=${encodedKw}&location=${encodedLoc}&start=${start}`;
+      // Primary: public search URL (bypasses 429 rate limit on guest API)
+      const primaryUrl = `https://www.linkedin.com/jobs/search?keywords=${encodedKw}&location=${encodedLoc}&start=${start}`;
+      const fallbackUrl = `https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=${encodedKw}&location=${encodedLoc}&start=${start}`;
 
-      const res = await fetch(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-        }
-      });
+      const headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'sec-ch-ua': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"'
+      };
+
+      let res = await fetch(primaryUrl, { headers });
+      if (!res.ok) {
+        res = await fetch(fallbackUrl, { headers });
+      }
 
       if (!res.ok) {
-        console.warn(`LinkedIn guest search returned HTTP ${res.status}`);
+        console.warn(`LinkedIn search returned HTTP ${res.status}`);
         break;
       }
 

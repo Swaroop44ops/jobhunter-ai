@@ -137,21 +137,23 @@ export function evaluateJobFit(job, profile = null, customKeywords = []) {
   }
 
   // 4. Location / Remote Check (Up to 15 points)
-  const isIndiaTarget = targetLocations.some(l => l.includes('india'));
+  const isIndiaTarget = targetLocations.some(l => l.includes('india') || l.includes('bengaluru') || l.includes('bangalore'));
   const isJobInIndia = location.includes('india') || location.includes('bengaluru') || location.includes('bangalore') || location.includes('pune') || location.includes('hyderabad') || location.includes('mumbai') || location.includes('delhi');
   const isJobRemote = location.includes('remote') || description.includes('remote') || title.includes('remote');
 
   if (isIndiaTarget && isJobInIndia) {
     score += 15;
-    reasons.push(`India location: ${job.location}`);
+    reasons.push(`Target location: ${job.location}`);
   } else if (isJobRemote) {
-    score += 12;
+    score += 10;
     reasons.push('Remote friendly');
   } else if (targetLocations.some(l => location.includes(l))) {
     score += 10;
     reasons.push(`Location matched: ${job.location}`);
   } else {
-    score += 5;
+    // Non-matching on-site foreign location (e.g. USA, UK, Czechia)
+    score = Math.max(0, score - 30);
+    reasons.push(`Location outside target: ${job.location}`);
   }
 
   score = Math.max(0, Math.min(100, score));
