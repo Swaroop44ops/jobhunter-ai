@@ -28,7 +28,11 @@
           <p class="text-xs text-indigo-200">Autonomous Job Discovery & Auto-Apply Copilot</p>
         </div>
       </div>
-      <div class="flex items-center space-x-4">
+      <div class="flex items-center space-x-3">
+        <button id="btn-search-by-resume" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:bg-amber-600 text-slate-950 px-4 py-2 rounded-lg font-bold text-sm flex items-center space-x-2 transition shadow">
+          <i class="fa-solid fa-wand-magic-sparkles text-slate-950"></i>
+          <span>Search by Resume</span>
+        </button>
         <button id="btn-run-search" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center space-x-2 transition shadow">
           <i class="fa-solid fa-bolt"></i>
           <span>Run Discovery Scan</span>
@@ -106,6 +110,36 @@
     <!-- TAB 1: Job Pipeline -->
     <section id="tab-jobs" class="tab-content block">
       
+      <!-- Active Resume & Smart Search Banner -->
+      <div id="resume-summary-banner" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div class="flex items-center space-x-3.5">
+          <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0 border border-amber-200 shadow-sm">
+            <i class="fa-solid fa-file-invoice"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-600 flex items-center">
+                <i class="fa-solid fa-circle-check text-emerald-500 mr-1.5"></i> Active Resume Loaded
+              </span>
+              <span id="banner-resume-filename" class="text-xs font-semibold bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full border border-slate-200">Swaroop_HG_FullStack.pdf</span>
+            </div>
+            <div class="text-sm font-semibold text-slate-800 mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span>Target Role: <strong id="banner-resume-role" class="text-indigo-600">.NET Developer</strong></span>
+              <span class="text-slate-300">•</span>
+              <span>City: <strong id="banner-resume-location" class="text-indigo-600">Bengaluru</strong></span>
+              <span class="text-slate-300 hidden md:inline">•</span>
+              <span class="text-xs text-slate-500 hidden md:inline" id="banner-resume-skills">Top Skills: C#, .NET Core, ASP.NET MVC, React, SQL Server</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2 self-stretch md:self-auto justify-end">
+          <button id="btn-quick-resume-search" class="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm transition">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>Auto-Search Matching Jobs</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Multi-Portal Fast Search Bar -->
       <div class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white rounded-2xl p-5 shadow-lg mb-6">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
@@ -125,11 +159,11 @@
         <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
           <div class="md:col-span-6 relative">
             <i class="fa-solid fa-briefcase absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
-            <input type="text" id="portal-keywords" placeholder="Keywords or Job Titles (e.g. Full Stack Developer, React, Python)..." class="w-full pl-10 pr-4 py-2.5 bg-white text-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-inner">
+            <input type="text" id="portal-keywords" placeholder="Keywords or Job Titles (e.g. .NET Developer, Full Stack, React)..." class="w-full pl-10 pr-4 py-2.5 bg-white text-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-inner">
           </div>
           <div class="md:col-span-4 relative">
             <i class="fa-solid fa-location-dot absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
-            <input type="text" id="portal-location" placeholder="Location (e.g. India, Bengaluru, Remote)..." value="India" class="w-full pl-10 pr-4 py-2.5 bg-white text-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-inner">
+            <input type="text" id="portal-location" placeholder="Location (e.g. Bengaluru, India, Remote)..." value="Bengaluru" class="w-full pl-10 pr-4 py-2.5 bg-white text-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-inner">
           </div>
           <div class="md:col-span-2">
             <button id="btn-portal-search" class="w-full h-full py-2.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 font-bold rounded-xl text-sm flex items-center justify-center space-x-2 transition shadow-md">

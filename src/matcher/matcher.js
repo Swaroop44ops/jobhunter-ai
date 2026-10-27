@@ -24,10 +24,10 @@ export function hasSkill(text, skill) {
   const t = text.toLowerCase();
 
   // Smart special-case for .NET / C#
-  if (s === '.net' || s === 'dotnet' || s === '.net core' || s === 'asp.net') {
+  if (s === '.net' || s === 'dotnet' || s === '.net core' || s === 'asp.net' || s.includes('.net') || s.includes('dotnet')) {
     return t.includes('.net') || t.includes('dotnet') || t.includes('c#') || t.includes('asp.net');
   }
-  if (s === 'c#' || s === 'csharp') {
+  if (s === 'c#' || s === 'csharp' || s.includes('c#')) {
     return t.includes('c#') || t.includes('csharp') || t.includes('.net');
   }
   if (s === 'c++') {

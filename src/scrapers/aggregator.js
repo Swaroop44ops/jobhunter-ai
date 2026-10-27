@@ -9,11 +9,20 @@ import { JobRepository } from '../db/database.js';
 export async function runJobDiscovery(options = {}) {
   const profile = loadProfile();
   const prefs = profile.preferences || {};
+  const personal = profile.personal || {};
   
-  // Parse keywords: can be array or comma-separated string
+  // Extract search keywords from resume profile or user request
   let rawKeywords = options.keywords;
   let keywords = [];
-  if (Array.isArray(rawKeywords)) {
+  if (options.searchByResume || !rawKeywords || (typeof rawKeywords === 'string' && !rawKeywords.trim())) {
+    if (prefs.targetTitles && prefs.targetTitles.length > 0) {
+      keywords = [...prefs.targetTitles];
+    } else if (prefs.skills && prefs.skills.length > 0) {
+      keywords = prefs.skills.slice(0, 3);
+    } else {
+      keywords = ['Software Engineer', 'Developer'];
+    }
+  } else if (Array.isArray(rawKeywords)) {
     keywords = rawKeywords;
   } else if (typeof rawKeywords === 'string' && rawKeywords.trim()) {
     keywords = rawKeywords.split(',').map(s => s.trim()).filter(Boolean);
@@ -23,20 +32,26 @@ export async function runJobDiscovery(options = {}) {
     keywords = prefs.targetTitles || ['Software Engineer', 'Developer'];
   }
 
-  // Parse location
-  const location = options.location || (prefs.targetLocations && prefs.targetLocations[0]) || 'India';
+  // Determine location: resume city takes priority if searching by resume or defaulting
+  let location = options.location;
+  if (options.searchByResume || !location || (typeof location === 'string' && !location.trim())) {
+    location = personal.city || (prefs.targetLocations && prefs.targetLocations[0]) || 'Bengaluru';
+  } else if (location.toLowerCase() === 'india' && personal.city) {
+    location = personal.city;
+  }
+
   const primaryKw = keywords[0] || 'Software Engineer';
 
   // Smart Query Expansion for special technologies (e.g. .net -> .NET Developer)
   let portalSearchTerm = primaryKw;
   const kwLower = primaryKw.toLowerCase().trim();
-  if (kwLower === '.net' || kwLower === 'dotnet') {
+  if (kwLower === '.net' || kwLower === 'dotnet' || kwLower.includes('.net developer')) {
     portalSearchTerm = '.NET Developer';
-  } else if (kwLower === 'c#' || kwLower === 'csharp') {
+  } else if (kwLower === 'c#' || kwLower === 'csharp' || kwLower.includes('c# developer')) {
     portalSearchTerm = 'C# Developer';
   }
 
-  JobRepository.log(null, 'INFO', `Executing dynamic portal search: Query="${portalSearchTerm}", Location="${location}"`);
+  JobRepository.log(null, 'INFO', `Executing dynamic portal search: Query="${portalSearchTerm}", Location="${location}" (Based on resume: ${Boolean(options.searchByResume)})`);
 
   const allRawJobs = [];
 

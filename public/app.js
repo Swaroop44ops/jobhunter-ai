@@ -21,6 +21,14 @@ const portalKeywords = document.getElementById('portal-keywords');
 const portalLocation = document.getElementById('portal-location');
 const btnPortalSearch = document.getElementById('btn-portal-search');
 
+// Resume Search & Banner Elements
+const btnSearchByResume = document.getElementById('btn-search-by-resume');
+const btnQuickResumeSearch = document.getElementById('btn-quick-resume-search');
+const bannerResumeFilename = document.getElementById('banner-resume-filename');
+const bannerResumeRole = document.getElementById('banner-resume-role');
+const bannerResumeLocation = document.getElementById('banner-resume-location');
+const bannerResumeSkills = document.getElementById('banner-resume-skills');
+
 // Resume Elements
 const quickResumeUpload = document.getElementById('quick-resume-upload');
 const quickResumeLabel = document.getElementById('quick-resume-label');
@@ -63,6 +71,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Action events
+  if (btnSearchByResume) btnSearchByResume.addEventListener('click', handleResumeSearch);
+  if (btnQuickResumeSearch) btnQuickResumeSearch.addEventListener('click', handleResumeSearch);
   btnRunSearch.addEventListener('click', handleRunSearch);
   if (btnPortalSearch) btnPortalSearch.addEventListener('click', handlePortalSearch);
   btnBatchApply.addEventListener('click', handleBatchApply);
@@ -342,7 +352,11 @@ async function handleRunSearch() {
   btnRunSearch.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Scanning Boards...</span>`;
 
   try {
-    const res = await fetch('/api/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+    const res = await fetch('/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ searchByResume: true })
+    });
     const data = await res.json();
     const r = data.results || {};
     showToast(`Scan complete! Scanned ${r.totalScanned || 0} live postings: ${r.newJobs || 0} brand new, ${r.updatedJobs || 0} existing.`);
@@ -354,6 +368,61 @@ async function handleRunSearch() {
   } finally {
     btnRunSearch.disabled = false;
     btnRunSearch.innerHTML = `<i class="fa-solid fa-bolt"></i><span>Run Discovery Scan</span>`;
+  }
+}
+
+// Search Jobs Based on Uploaded Resume
+async function handleResumeSearch() {
+  const btn1 = document.getElementById('btn-search-by-resume');
+  const btn2 = document.getElementById('btn-quick-resume-search');
+  
+  if (btn1) {
+    btn1.disabled = true;
+    btn1.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Searching Resume...</span>`;
+  }
+  if (btn2) {
+    btn2.disabled = true;
+    btn2.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Matching...</span>`;
+  }
+
+  try {
+    const profRes = await fetch('/api/profile');
+    const prof = await profRes.json();
+    const title = (prof.preferences?.targetTitles?.[0]) || '.NET Developer';
+    const loc = prof.personal?.city || 'Bengaluru';
+
+    // Synchronize search inputs and table filters
+    if (portalKeywords) portalKeywords.value = title;
+    if (portalLocation) portalLocation.value = loc;
+    if (searchInput) searchInput.value = title;
+    if (filterLocation) filterLocation.value = loc;
+    if (filterDate) filterDate.value = ''; // Reset date filter to display all fresh results
+
+    showToast(`Searching jobs matched to resume: "${title}" in "${loc}"...`);
+
+    const res = await fetch('/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ searchByResume: true, keywords: title, location: loc })
+    });
+    const data = await res.json();
+    const r = data.results || {};
+    showToast(`Resume Search complete! Scanned ${r.totalScanned || 0} live jobs (${r.newJobs || 0} brand new, ${r.updatedJobs || 0} updated).`);
+    
+    await loadStats();
+    await loadJobs();
+    await loadLogs();
+  } catch (err) {
+    showToast(`Resume search error: ${err.message}`);
+  } finally {
+    if (btn1) {
+      btn1.disabled = false;
+      btn1.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-slate-950"></i><span>Search by Resume</span>`;
+    }
+    if (btn2) {
+      btn2.disabled = false;
+      btn2.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i><span>Auto-Search Matching Jobs</span>`;
+    }
   }
 }
 
@@ -412,15 +481,15 @@ async function uploadResumeFile(file) {
       });
       const data = await res.json();
       if (data.success) {
-        showToast(`Resume uploaded: ${data.filename}`);
+        showToast(`Resume uploaded & parsed: ${data.filename}! Searching matching jobs...`);
         if (quickResumeLabel) quickResumeLabel.innerText = data.filename;
         if (profResumeDisplay) profResumeDisplay.innerText = data.resumePath;
         if (resumeStatusBadge) {
           resumeStatusBadge.innerText = 'Uploaded';
           resumeStatusBadge.className = 'px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800';
         }
-        loadProfile();
-        loadLogs();
+        await loadProfile();
+        await handleResumeSearch();
       } else {
         showToast(`Upload failed: ${data.error}`);
       }
@@ -445,7 +514,8 @@ async function handleExtractResume() {
     const data = await res.json();
     if (data.success) {
       showToast('Profile successfully extracted from resume!');
-      loadProfile();
+      await loadProfile();
+      await handleResumeSearch();
     } else {
       showToast('Failed to extract: ' + (data.error || 'Unknown error'));
     }
@@ -469,10 +539,33 @@ async function loadProfile() {
     const pr = prof.preferences || {};
     const a = prof.answers || {};
 
+    const targetTitle = (pr.targetTitles && pr.targetTitles[0]) || '.NET Developer';
+    const city = p.city || 'Bengaluru';
+    const topSkills = (pr.skills || []).slice(0, 5).join(', ');
+
     if (p.resumePath) {
       const filename = p.resumePath.split('/').pop().split('\\').pop();
       if (quickResumeLabel) quickResumeLabel.innerText = filename;
       if (profResumeDisplay) profResumeDisplay.innerText = p.resumePath;
+      if (bannerResumeFilename) bannerResumeFilename.innerText = filename;
+    }
+
+    if (bannerResumeRole) bannerResumeRole.innerText = targetTitle;
+    if (bannerResumeLocation) bannerResumeLocation.innerText = city;
+    if (bannerResumeSkills && topSkills) bannerResumeSkills.innerText = `Top Skills: ${topSkills}`;
+
+    // Auto-populate portal search inputs if empty
+    if (portalKeywords && (!portalKeywords.value || portalKeywords.value.trim() === '')) {
+      portalKeywords.value = targetTitle;
+    }
+    if (portalLocation && (!portalLocation.value || portalLocation.value.trim() === '' || portalLocation.value === 'India')) {
+      portalLocation.value = city;
+    }
+    if (searchInput && (!searchInput.value || searchInput.value.trim() === '')) {
+      searchInput.value = targetTitle;
+    }
+    if (filterLocation && (!filterLocation.value || filterLocation.value.trim() === '')) {
+      filterLocation.value = city;
     }
 
     document.getElementById('prof-firstName').value = p.firstName || '';
@@ -496,30 +589,42 @@ async function loadProfile() {
 
 async function handleSaveProfile(e) {
   e.preventDefault();
+  let existingProfile = {};
+  try {
+    const res = await fetch('/api/profile');
+    existingProfile = await res.json();
+  } catch (e) {}
+
   const profileData = {
+    ...existingProfile,
     personal: {
+      ...(existingProfile.personal || {}),
       firstName: document.getElementById('prof-firstName').value,
       lastName: document.getElementById('prof-lastName').value,
       email: document.getElementById('prof-email').value,
       phone: document.getElementById('prof-phone').value,
       linkedin: document.getElementById('prof-linkedin').value,
       github: document.getElementById('prof-github').value,
-      resumePath: 'data/sample_resume.pdf'
+      resumePath: existingProfile.personal?.resumePath || (profResumeDisplay ? profResumeDisplay.innerText : 'data/sample_resume.pdf')
     },
     workAuthorization: {
-      authorizedInUS: 'yes',
-      requireSponsorship: 'no'
+      authorizedInCountry: 'yes',
+      authorizedInIndia: 'yes',
+      requireSponsorship: 'no',
+      citizenship: existingProfile.workAuthorization?.citizenship || 'Indian'
     },
     preferences: {
+      ...(existingProfile.preferences || {}),
       targetTitles: document.getElementById('prof-targetTitles').value.split(',').map(s => s.trim()).filter(Boolean),
       skills: document.getElementById('prof-skills').value.split(',').map(s => s.trim()).filter(Boolean),
       yearsOfExperience: parseInt(document.getElementById('prof-yoe').value || '3', 10),
       minSalary: parseInt(document.getElementById('prof-salary').value || '90000', 10),
-      targetLocations: ['Remote', 'United States'],
-      blacklistCompanies: ['SpamCorp'],
-      blacklistKeywords: ['Clearance Required', 'TS/SCI']
+      targetLocations: existingProfile.preferences?.targetLocations || ['Bengaluru', 'India', 'Remote'],
+      blacklistCompanies: existingProfile.preferences?.blacklistCompanies || ['SpamCorp'],
+      blacklistKeywords: existingProfile.preferences?.blacklistKeywords || ['Unpaid']
     },
     answers: {
+      ...(existingProfile.answers || {}),
       describeExperience: document.getElementById('prof-descExperience').value,
       whyCompany: document.getElementById('prof-whyCompany').value,
       gender: 'Decline to identify',

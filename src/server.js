@@ -156,8 +156,8 @@ app.post('/api/jobs/:id/status', (req, res) => {
 // Trigger search & discovery across all portals
 app.post('/api/search', async (req, res) => {
   try {
-    const { keywords, location } = req.body;
-    const results = await runJobDiscovery({ keywords, location });
+    const { keywords, location, searchByResume } = req.body;
+    const results = await runJobDiscovery({ keywords, location, searchByResume });
     res.json({ success: true, results });
   } catch (err) {
     res.status(500).json({ error: err.message });
